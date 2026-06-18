@@ -7,39 +7,28 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 
-/// @title TimeLockVault
-/// @notice Lets any wallet lock native OPN or an owner-approved ERC-20 token (e.g. USDC)
-///         for a duration of their choosing, optionally top up that same lock before it
-///         matures, and claim it back afterwards. Early exit is allowed for a bigger
-///         penalty fee instead of being completely blocked.
-/// @dev Native OPN is represented internally by address(0). One shared contract holds
-///      everyone's funds; per-user separation is enforced entirely through the Lock
-///      struct's `owner` field and the `msg.sender` checks below, not through separate
-///      contracts. There is intentionally no function anywhere that lets the owner move
-///      a user's locked principal — owner-only functions only ever touch fee
-///      configuration, never user balances.
 contract TimeLockVault is ReentrancyGuard, Ownable, Pausable {
     using SafeERC20 for IERC20;
 
     struct Lock {
         address owner;
-        address token;      // address(0) means native OPN
-        uint256 amount;     // currently locked amount, net of fees already taken
-        uint256 unlockTime; // block.timestamp at/after which a normal (non-penalised) claim is allowed
+        address token;
+        uint256 amount;
+        uint256 unlockTime;
         bool claimed;
     }
 
-    uint256 public constant MAX_FEE_BPS = 500; // hard ceiling: no fee can ever exceed 5%
+    uint256 public constant MAX_FEE_BPS = 500; 
     uint256 public constant BPS_DENOMINATOR = 10_000;
     uint256 public constant MIN_LOCK_DURATION = 1 days;
     uint256 public constant MAX_LOCK_DURATION = 5 * 365 days;
 
-    uint256 public lockFeeBps;          // charged when a lock is created or topped up
-    uint256 public claimFeeBps;         // charged on a normal claim, at or after maturity
-    uint256 public earlyWithdrawFeeBps; // charged on a claim made before maturity
+    uint256 public lockFeeBps;
+    uint256 public claimFeeBps;
+    uint256 public earlyWithdrawFeeBps;
     address public feeRecipient;
 
-    mapping(address => bool) public supportedTokens; // ERC-20 allowlist; native OPN is always allowed
+    mapping(address => bool) public supportedTokens; 
     mapping(uint256 => Lock) public locks;
     mapping(address => uint256[]) private _userLockIds;
     uint256 public nextLockId;
@@ -71,15 +60,7 @@ contract TimeLockVault is ReentrancyGuard, Ownable, Pausable {
         earlyWithdrawFeeBps = initialEarlyWithdrawFeeBps;
     }
 
-    // ---------------------------------------------------------------------
-    // User-facing actions
-    // ---------------------------------------------------------------------
 
-    /// @notice Lock native OPN or an approved ERC-20 token for `duration` seconds.
-    /// @param token address(0) for native OPN, otherwise an owner-approved ERC-20 address.
-    /// @param amount Amount to lock when `token` is an ERC-20. Must be 0 for native OPN;
-    ///        send the native amount as msg.value instead.
-    /// @param duration How long the funds stay locked, in seconds.
     function createLock(address token, uint256 amount, uint256 duration)
         external
         payable
@@ -104,7 +85,6 @@ contract TimeLockVault is ReentrancyGuard, Ownable, Pausable {
         emit LockCreated(lockId, msg.sender, token, net, unlockTime);
     }
 
-    /// @notice Add more funds to your own existing, unclaimed lock. Never changes the unlock date.
     function topUp(uint256 lockId, uint256 amount) external payable whenNotPaused nonReentrant {
         Lock storage lock = locks[lockId];
         require(lock.owner == msg.sender, "not your lock");
@@ -121,9 +101,6 @@ contract TimeLockVault is ReentrancyGuard, Ownable, Pausable {
         emit LockToppedUp(lockId, net, lock.amount);
     }
 
-    /// @notice Claim a lock. Allowed at any time; claiming before the unlock date pays the
-    ///         early-withdrawal fee instead of the normal claim fee, rather than being blocked
-    ///         outright. Always works even while the contract is paused.
     function claim(uint256 lockId) external nonReentrant {
         Lock storage lock = locks[lockId];
         require(lock.owner == msg.sender, "not your lock");
@@ -133,7 +110,7 @@ contract TimeLockVault is ReentrancyGuard, Ownable, Pausable {
         uint256 feeBps = early ? earlyWithdrawFeeBps : claimFeeBps;
         uint256 amount = lock.amount;
 
-        lock.claimed = true; // state updated before any external transfer
+        lock.claimed = true;
 
         uint256 fee = (amount * feeBps) / BPS_DENOMINATOR;
         uint256 payout = amount - fee;
@@ -144,10 +121,6 @@ contract TimeLockVault is ReentrancyGuard, Ownable, Pausable {
         emit LockClaimed(lockId, msg.sender, payout, fee, early);
     }
 
-    // ---------------------------------------------------------------------
-    // Views, for the dashboard
-    // ---------------------------------------------------------------------
-
     function getUserLockIds(address user) external view returns (uint256[] memory) {
         return _userLockIds[user];
     }
@@ -156,14 +129,6 @@ contract TimeLockVault is ReentrancyGuard, Ownable, Pausable {
         return locks[lockId];
     }
 
-    // ---------------------------------------------------------------------
-    // Internal helpers
-    // ---------------------------------------------------------------------
-
-    /// @dev Pulls funds from the caller. For ERC-20s, measures the actual balance change
-    ///      rather than trusting the `amount` parameter, so a fee-on-transfer or otherwise
-    ///      non-standard token can never let someone record more than the contract truly
-    ///      received.
     function _pullFunds(address token, uint256 amount) private returns (uint256 received) {
         if (token == address(0)) {
             require(amount == 0, "amount must be 0 for native OPN; use msg.value");
@@ -190,9 +155,6 @@ contract TimeLockVault is ReentrancyGuard, Ownable, Pausable {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // Admin: fee configuration only. None of these touch a user's locked principal.
-    // ---------------------------------------------------------------------
 
     function setSupportedToken(address token, bool supported) external onlyOwner {
         require(token != address(0), "native OPN is always supported");
@@ -219,8 +181,6 @@ contract TimeLockVault is ReentrancyGuard, Ownable, Pausable {
         emit FeeRecipientUpdated(newRecipient);
     }
 
-    /// @notice Pauses new locks and top-ups only. Claiming, including early withdrawal,
-    ///         always stays open, even while paused.
     function pause() external onlyOwner {
         _pause();
     }
