@@ -3,9 +3,6 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-/// @notice Minimal mintable ERC-20 used only in tests to stand in for USDC.
-///         Not deployed as part of the real product; OPN testnet/mainnet USDC
-///         (once available) would be used instead.
 contract MockERC20 is ERC20 {
     uint8 private _decimals;
 
