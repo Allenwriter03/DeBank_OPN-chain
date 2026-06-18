@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeBank — Save smarter on OPN Chain</title>
+<meta name="description" content="DeBank is a time-locked vault on OPN Chain. Deposit OPN, stablecoins, and OPN assets. Withdraw when you choose.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%235227FF'/%3E%3Cstop offset='1' stop-color='%237cff67'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M8 4L32 4Q20 20 32 36L8 36Q20 20 8 4Z' fill='none' stroke='url(%23g)' stroke-width='2.5' stroke-linejoin='round'/%3E%3Cline x1='8' y1='4' x2='32' y2='4' stroke='%235227FF' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='8' y1='36' x2='32' y2='36' stroke='%237cff67' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='20' cy='20' r='2.5' fill='%237cff67'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08080F;--surf:#0D0D1A;--surf2:#141428;
+  --green:#7cff67;--purple:#5227FF;--mid:#B497CF;
+  --text:#F0EDFF;--muted:rgba(240,237,255,0.5);
+  --border:rgba(82,39,255,0.18);--border-g:rgba(124,255,103,0.13);
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+a{color:var(--green);text-decoration:none;}
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 48px;height:68px;
+  background:rgba(8,8,15,0.75);backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.brand-name{font-size:1.2rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);}
+.brand-name em{color:var(--green);font-style:normal;}
+.nav-links{display:flex;align-items:center;gap:32px;}
+.nav-links a{color:var(--muted);font-weight:600;font-size:0.9rem;transition:color .15s;}
+.nav-links a:hover{color:var(--text);}
+.btn-cta{
+  background:var(--green);color:#050505;border:none;border-radius:10px;
+  padding:10px 22px;font-weight:800;font-size:0.9rem;cursor:pointer;
+  font-family:var(--font);transition:opacity .15s,transform .1s;
+  text-decoration:none;display:inline-block;
+}
+.btn-cta:hover{opacity:0.88;transform:translateY(-1px);}
+.btn-ghost-n{
+  background:transparent;color:var(--text);text-decoration:none;
+  border:1px solid rgba(240,237,255,0.18);border-radius:10px;
+  padding:10px 22px;font-weight:600;font-size:0.9rem;
+  transition:border-color .15s;display:inline-block;
+}
+.btn-ghost-n:hover{border-color:rgba(240,237,255,0.45);}
+.hero{
+  position:relative;min-height:100vh;display:flex;
+  align-items:center;justify-content:center;
+  overflow:hidden;padding:68px 48px 0;
+}
+.aurora-wrap{position:absolute;inset:0;z-index:0;}
+.aurora-wrap canvas{position:absolute;inset:0;width:100%;height:100%;}
+.hero-overlay{
+  position:absolute;inset:0;z-index:1;
+  background:linear-gradient(to bottom,rgba(8,8,15,0.2) 0%,rgba(8,8,15,0.7) 55%,rgba(8,8,15,1) 100%);
+}
+.hero-content{position:relative;z-index:2;text-align:center;max-width:800px;}
+.hero-tag{
+  display:inline-block;background:rgba(82,39,255,0.15);
+  border:1px solid rgba(82,39,255,0.4);color:var(--mid);
+  font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  border-radius:999px;padding:6px 18px;margin-bottom:28px;
+}
+h1{
+  font-size:clamp(2.8rem,7vw,5.5rem);font-weight:800;
+  line-height:1.0;letter-spacing:-0.03em;color:var(--text);margin-bottom:22px;
+}
+h1 em{color:var(--green);font-style:normal;}
+.hero-sub{color:var(--muted);font-size:1.1rem;line-height:1.7;max-width:500px;margin:0 auto 42px;}
+.hero-ctas{display:flex;align-items:center;justify-content:center;gap:14px;}
+.hero-scroll{
+  position:absolute;bottom:36px;left:50%;transform:translateX(-50%);
+  z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;
+  color:var(--muted);font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  animation:scrollbounce 2.2s ease-in-out infinite;
+}
+.scroll-line{width:1px;height:30px;background:linear-gradient(to bottom,var(--muted),transparent);}
+@keyframes scrollbounce{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(8px);}}
+.section{padding:100px 48px;}
+.wrap{max-width:1080px;margin:0 auto;}
+.section-label{font-size:0.77rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--green);margin-bottom:14px;}
+h2{font-size:clamp(1.9rem,4vw,3rem);font-weight:800;letter-spacing:-0.02em;line-height:1.1;}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:52px;}
+.feature-card{
+  background:var(--surf);border:1px solid var(--border);border-radius:18px;padding:32px;
+  transition:border-color .2s;
+}
+.feature-card:hover{border-color:rgba(82,39,255,0.45);}
+.feat-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:rgba(82,39,255,0.12);border:1px solid rgba(82,39,255,0.25);
+  display:flex;align-items:center;justify-content:center;margin-bottom:20px;
+}
+.feature-card h3{font-size:1.05rem;font-weight:800;margin-bottom:10px;}
+.feature-card p{color:var(--muted);font-size:0.9rem;line-height:1.65;}
+.assets-bg{background:var(--surf);}
+.assets-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+.asset-list{display:flex;flex-direction:column;gap:12px;}
+.asset-item{
+  display:flex;align-items:center;gap:14px;
+  background:var(--surf2);border:1px solid var(--border);border-radius:14px;padding:16px 20px;
+}
+.asset-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.82rem;flex:none;}
+.ai-opn{background:rgba(82,39,255,0.22);color:var(--mid);}
+.ai-usdc{background:rgba(50,110,255,0.14);color:#6fa8f7;}
+.ai-usdt{background:rgba(60,180,60,0.14);color:#5fcf5f;}
+.ai-more{background:rgba(240,237,255,0.05);color:var(--muted);}
+.asset-info{flex:1;}
+.asset-name{font-weight:800;font-size:0.92rem;}
+.asset-desc{font-size:0.78rem;color:var(--muted);margin-top:2px;}
+.badge{font-size:0.7rem;font-weight:600;letter-spacing:0.06em;padding:4px 10px;border-radius:999px;white-space:nowrap;}
+.badge-live{background:rgba(124,255,103,0.1);color:var(--green);border:1px solid rgba(124,255,103,0.25);}
+.badge-soon{background:rgba(180,151,207,0.08);color:var(--mid);border:1px solid rgba(180,151,207,0.18);}
+.assets-text p{color:var(--muted);font-size:0.95rem;line-height:1.7;margin-top:14px;}
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:52px;}
+.step{padding:32px;border-radius:18px;border:1px solid var(--border-g);}
+.step-num{font-size:2.8rem;font-weight:800;color:rgba(124,255,103,0.18);line-height:1;margin-bottom:16px;}
+.step h3{font-size:1.05rem;font-weight:800;margin-bottom:8px;}
+.step p{color:var(--muted);font-size:0.9rem;line-height:1.65;}
+.test-bg{background:var(--surf);}
+.test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:52px;}
+.testimonial{background:var(--surf2);border:1px solid var(--border);border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:14px;}
+.stars{color:var(--green);letter-spacing:3px;font-size:0.88rem;}
+.testimonial blockquote{color:var(--text);font-size:0.93rem;line-height:1.65;font-style:italic;}
+.t-author{display:flex;align-items:center;gap:12px;margin-top:auto;}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;flex:none;}
+.av1{background:rgba(82,39,255,0.28);color:var(--mid);}
+.av2{background:rgba(124,255,103,0.15);color:var(--green);}
+.av3{background:rgba(180,151,207,0.18);color:var(--mid);}
+.author-name{font-weight:700;font-size:0.87rem;}
+.author-role{color:var(--muted);font-size:0.77rem;margin-top:1px;}
+.cta-section{text-align:center;padding:100px 48px;background:linear-gradient(to bottom,transparent,rgba(82,39,255,0.06));}
+.cta-section p{color:var(--muted);margin:14px 0 36px;font-size:1rem;line-height:1.6;}
+footer{border-top:1px solid var(--border);padding:28px 48px;}
+.foot-inner{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+.foot-inner p{color:var(--muted);font-size:0.83rem;}
+code{color:var(--green);font-family:monospace;}
+.fade-up{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease;}
+.fade-up.in{opacity:1;transform:none;}
+@media(max-width:860px){
+  nav{padding:0 20px;}.nav-links{display:none;}
+  .hero,.section{padding-left:20px;padding-right:20px;}
+  .features-grid,.steps-grid,.test-grid{grid-template-columns:1fr;}
+  .assets-grid{grid-template-columns:1fr;}
+  footer,.cta-section{padding-left:20px;padding-right:20px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="index.html">
+    <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
+      <defs><linearGradient id="hgn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5227FF"/><stop offset="100%" stop-color="#7cff67"/></linearGradient></defs>
+      <path d="M8 4L32 4Q20 20 32 36L8 36Q20 20 8 4Z" fill="none" stroke="url(#hgn)" stroke-width="2.5" stroke-linejoin="round"/>
+      <line x1="8" y1="4" x2="32" y2="4" stroke="#5227FF" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="8" y1="36" x2="32" y2="36" stroke="#7cff67" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="20" cy="20" r="2.5" fill="#7cff67"/>
+    </svg>
+    <div class="brand-name">De<em>Bank</em></div>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#assets">Assets</a>
+    <a href="#how">How it works</a>
+    <a href="#testimonials">Community</a>
+  </div>
+  <a href="app.html" class="btn-cta">Launch App ↗</a>
+</nav>
+
+<section class="hero">
+  <div class="aurora-wrap" id="heroAurora"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Built on OPN Chain · Testnet</div>
+    <h1>Save smarter.<br><em>Unlock on time.</em></h1>
+    <p class="hero-sub">DeBank is a time-locked vault where you deposit IOPN, stablecoins, and OPN Chain assets — and choose exactly when to get them back.</p>
+    <div class="hero-ctas">
+      <a href="app.html" class="btn-cta" style="font-size:1rem;padding:14px 32px;">Launch App ↗</a>
+      <a href="#features" class="btn-ghost-n" style="font-size:1rem;padding:14px 32px;">Learn more</a>
+    </div>
+  </div>
+  <div class="hero-scroll"><span>scroll</span><div class="scroll-line"></div></div>
+</section>
+
+<section id="features" class="section">
+  <div class="wrap fade-up">
+    <p class="section-label">Why DeBank</p>
+    <h2>Built to make you save.</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feat-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7cff67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Time-lock discipline</h3>
+        <p>Choose your own unlock date — from one day to five years. Your assets wait patiently, even when you're tempted not to.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7cff67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        </div>
+        <h3>Always an exit</h3>
+        <p>Life changes. Early withdrawal is always available for a small fee — you're never completely locked out, just committed.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7cff67" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3>Non-custodial vault</h3>
+        <p>Your assets live in an audited smart contract. No middleman, no admin access — only your wallet key can withdraw.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="assets" class="section assets-bg">
+  <div class="wrap">
+    <div class="assets-grid">
+      <div class="assets-text fade-up">
+        <p class="section-label">What you can store</p>
+        <h2>One vault for all your OPN assets.</h2>
+        <p>Start with native IOPN today. Stablecoin support for USDC and USDT is built in and will activate as those assets launch on OPN Chain.</p>
+        <p>Any ERC-20 on OPN Chain can be added to the vault as the ecosystem grows.</p>
+      </div>
+      <div class="asset-list fade-up">
+        <div class="asset-item">
+          <div class="asset-icon ai-opn">OPN</div>
+          <div class="asset-info"><div class="asset-name">Native OPN</div><div class="asset-desc">OPN Chain's native gas &amp; value token</div></div>
+          <span class="badge badge-live">Live now</span>
+        </div>
+        <div class="asset-item">
+          <div class="asset-icon ai-usdc">USDC</div>
+          <div class="asset-info"><div class="asset-name">USD Coin</div><div class="asset-desc">Dollar-pegged stablecoin</div></div>
+          <span class="badge badge-soon">Coming soon</span>
+        </div>
+        <div class="asset-item">
+          <div class="asset-icon ai-usdt">USDT</div>
+          <div class="asset-info"><div class="asset-name">Tether</div><div class="asset-desc">World's most-used stablecoin</div></div>
+          <span class="badge badge-soon">Coming soon</span>
+        </div>
+        <div class="asset-item">
+          <div class="asset-icon ai-more">+</div>
+          <div class="asset-info"><div class="asset-name">Other OPN assets</div><div class="asset-desc">Any approved ERC-20 on OPN Chain</div></div>
+          <span class="badge badge-soon">Expanding</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="section">
+  <div class="wrap fade-up">
+    <p class="section-label">How it works</p>
+    <h2>Three steps to a better saving habit.</h2>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Connect your wallet</h3>
+        <p>Connect MetaMask to OPN Chain testnet. DeBank detects your network and switches automatically — no manual setup.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Deposit &amp; choose a date</h3>
+        <p>Pick your asset (IOPN, USDC, USDT), amount, and unlock date. From one week to five years — whatever goal you're working toward.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Withdraw when ready</h3>
+        <p>When your date arrives, withdraw the full amount for a small fee. Or exit early anytime — you always stay in control.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="testimonials" class="section test-bg">
+  <div class="wrap fade-up">
+    <p class="section-label">Early users</p>
+    <h2>People who've used DeBank.</h2>
+    <div class="test-grid">
+      <div class="testimonial">
+        <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <blockquote>"I locked 500 IOPN before a bull run and couldn't touch it even when panic hit. Best financial decision I've made on any chain."</blockquote>
+        <div class="t-author">
+          <div class="avatar av1">PA</div>
+          <div><div class="author-name">Paul Atkins</div><div class="author-role">Crypto Trader</div></div>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <blockquote>"Saved USDT for a full quarter without touching it. When it matured I had exactly what I needed — no dipping in, no excuses."</blockquote>
+        <div class="t-author">
+          <div class="avatar av2">SL</div>
+          <div><div class="author-name">Sarah Lauren</div><div class="author-role">Freelance Designer</div></div>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <blockquote>"Knowing I can exit early if I really need to makes me feel safe locking more. That optionality changes the whole game."</blockquote>
+        <div class="t-author">
+          <div class="avatar av3">JA</div>
+          <div><div class="author-name">James Almar</div><div class="author-role">Software Engineer</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="wrap fade-up">
+    <p class="section-label">Get started</p>
+    <h2>Your savings are waiting.</h2>
+    <p>Connect your wallet and make your first deposit in under two minutes.</p>
+    <a href="app.html" class="btn-cta" style="font-size:1rem;padding:16px 44px;">Launch DeBank ↗</a>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-inner">
+    <a class="brand" href="index.html">
+      <svg width="22" height="22" viewBox="0 0 40 40" fill="none">
+        <defs><linearGradient id="hgf" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5227FF"/><stop offset="100%" stop-color="#7cff67"/></linearGradient></defs>
+        <path d="M8 4L32 4Q20 20 32 36L8 36Q20 20 8 4Z" fill="none" stroke="url(#hgf)" stroke-width="2.5" stroke-linejoin="round"/>
+        <circle cx="20" cy="20" r="2.5" fill="#7cff67"/>
+      </svg>
+      <div class="brand-name">De<em>Bank</em></div>
+    </a>
+    <p>Built on OPN Chain &middot; Contract <code>0x67Fe...1041</code></p>
+    <p>&copy; 2026 DeBank</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/ogl@1.0.3/dist/ogl.umd.min.js"></script>
+<script>
+const VERT=`#version 300 es
+in vec2 position;
+void main(){gl_Position=vec4(position,0.0,1.0);}`;
+const FRAG=`#version 300 es
+precision highp float;
+uniform float uTime;uniform float uAmplitude;uniform vec3 uColorStops[3];uniform vec2 uResolution;uniform float uBlend;
+out vec4 fragColor;
+vec3 permute(vec3 x){return mod(((x*34.0)+1.0)*x,289.0);}
+float snoise(vec2 v){
+  const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);
+  vec2 i=floor(v+dot(v,C.yy));vec2 x0=v-i+dot(i,C.xx);
+  vec2 i1=(x0.x>x0.y)?vec2(1.0,0.0):vec2(0.0,1.0);
+  vec4 x12=x0.xyxy+C.xxzz;x12.xy-=i1;i=mod(i,289.0);
+  vec3 p=permute(permute(i.y+vec3(0.0,i1.y,1.0))+i.x+vec3(0.0,i1.x,1.0));
+  vec3 m=max(0.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0);
+  m=m*m;m=m*m;
+  vec3 x=2.0*fract(p*C.www)-1.0;vec3 h=abs(x)-0.5;vec3 ox=floor(x+0.5);vec3 a0=x-ox;
+  m*=1.79284291400159-0.85373472095314*(a0*a0+h*h);
+  vec3 g;g.x=a0.x*x0.x+h.x*x0.y;g.yz=a0.yz*x12.xz+h.yz*x12.yw;
+  return 130.0*dot(m,g);}
+struct ColorStop{vec3 color;float position;};
+#define COLOR_RAMP(colors,factor,fc){int idx=0;for(int i=0;i<2;i++){ColorStop cc=colors[i];bool iB=cc.position<=factor;idx=int(mix(float(idx),float(i),float(iB)));}ColorStop cc=colors[idx];ColorStop nc=colors[idx+1];float rng=nc.position-cc.position;float lf=(factor-cc.position)/rng;fc=mix(cc.color,nc.color,lf);}
+void main(){
+  vec2 uv=gl_FragCoord.xy/uResolution;
+  ColorStop colors[3];colors[0]=ColorStop(uColorStops[0],0.0);colors[1]=ColorStop(uColorStops[1],0.5);colors[2]=ColorStop(uColorStops[2],1.0);
+  vec3 ramp;COLOR_RAMP(colors,uv.x,ramp);
+  float h=snoise(vec2(uv.x*2.0+uTime*0.1,uTime*0.25))*0.5*uAmplitude;h=exp(h);h=(uv.y*2.0-h+0.2);
+  float intensity=0.6*h;float aA=smoothstep(0.20-uBlend*0.5,0.20+uBlend*0.5,intensity);
+  fragColor=vec4(intensity*ramp*aA,aA);}`;
+
+function initAurora(id){
+  try{
+    const ctn=document.getElementById(id);
+    if(!ctn)return;
+    const lib=window.ogl||window.OGL;
+    if(!lib)return;
+    const{Renderer,Program,Mesh,Color,Triangle}=lib;
+    const renderer=new Renderer({alpha:true,premultipliedAlpha:true,antialias:true});
+    const gl=renderer.gl;
+    gl.clearColor(0,0,0,0);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+    const stops=['#7cff67','#B497CF','#5227FF'];
+    const sArr=stops.map(h=>{const c=new Color(h);return[c.r,c.g,c.b];});
+    const geom=new Triangle(gl);delete geom.attributes.uv;
+    const prog=new Program(gl,{vertex:VERT,fragment:FRAG,uniforms:{uTime:{value:0},uAmplitude:{value:1.0},uColorStops:{value:sArr},uResolution:{value:[ctn.offsetWidth,ctn.offsetHeight]},uBlend:{value:0.5}}});
+    const mesh=new Mesh(gl,{geometry:geom,program:prog});
+    ctn.appendChild(gl.canvas);
+    function resize(){renderer.setSize(ctn.offsetWidth,ctn.offsetHeight);prog.uniforms.uResolution.value=[ctn.offsetWidth,ctn.offsetHeight];}
+    window.addEventListener('resize',resize);resize();
+    function loop(t){requestAnimationFrame(loop);prog.uniforms.uTime.value=t*0.001*0.1;renderer.render({scene:mesh});}
+    requestAnimationFrame(loop);
+  }catch(e){console.warn('Aurora:',e);}
+}
+window.addEventListener('load',()=>{
+  initAurora('heroAurora');
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');});},{threshold:0.12});
+  document.querySelectorAll('.fade-up').forEach(el=>io.observe(el));
+});
+</script>
+</body>
+</html>
