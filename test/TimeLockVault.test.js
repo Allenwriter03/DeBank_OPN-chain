@@ -12,9 +12,9 @@ async function deployVault() {
   const vault = await TimeLockVault.deploy(
     owner.address,
     feeRecipient.address,
-    50, // 0.5% lock fee
-    50, // 0.5% claim fee
-    200 // 2% early withdraw fee
+    50,
+    50,
+    200 
   );
   await vault.waitForDeployment();
 
@@ -45,8 +45,6 @@ describe("TimeLockVault", function () {
     const gasCost = receipt.gasUsed * receipt.gasPrice;
     const after = await ethers.provider.getBalance(alice.address);
 
-    // locked amount is 9.95 (10 minus the 0.5% lock fee taken at creation);
-    // claim then takes another 0.5% claim fee on that 9.95 -> 9.90025 received
     expect(after - before + gasCost).to.be.closeTo(ethers.parseEther("9.90025"), ethers.parseEther("0.001"));
   });
 
@@ -79,8 +77,6 @@ describe("TimeLockVault", function () {
     await vault.connect(alice).createLock(NATIVE, 0, 30 * DAY, { value: ethers.parseEther("10") });
     const [lockId] = await vault.getUserLockIds(alice.address);
 
-    // locked amount is 9.95 (10 minus the 0.5% lock fee taken at creation);
-    // claiming immediately, well before the 30-day unlock, applies the 2% early fee to that 9.95
     await expect(vault.connect(alice).claim(lockId))
       .to.emit(vault, "LockClaimed")
       .withArgs(lockId, alice.address, ethers.parseEther("9.751"), ethers.parseEther("0.199"), true);
@@ -117,7 +113,7 @@ describe("TimeLockVault", function () {
     const amount = ethers.parseUnits("100", 6);
     await usdc.connect(alice).approve(await vault.getAddress(), amount);
 
-    // not yet approved by the owner
+
     await expect(vault.connect(alice).createLock(await usdc.getAddress(), amount, 30 * DAY)).to.be.revertedWith(
       "token not supported"
     );
@@ -127,7 +123,7 @@ describe("TimeLockVault", function () {
 
     const [lockId] = await vault.getUserLockIds(alice.address);
     const lock = await vault.getLock(lockId);
-    expect(lock.amount).to.equal(ethers.parseUnits("99.5", 6)); // minus 0.5% lock fee
+    expect(lock.amount).to.equal(ethers.parseUnits("99.5", 6)); 
   });
 
   it("lets the owner pause new locks while leaving existing claims open", async function () {
@@ -142,7 +138,8 @@ describe("TimeLockVault", function () {
       vault.connect(alice).createLock(NATIVE, 0, 1 * DAY, { value: ethers.parseEther("1") })
     ).to.be.revertedWithCustomError(vault, "EnforcedPause");
 
-    // claiming the existing lock still works while paused
+    // claiming the existing lock still works while paused, necessary//
+    
     await time.increase(2 * DAY);
     await expect(vault.connect(alice).claim(lockId)).to.not.be.reverted;
   });
