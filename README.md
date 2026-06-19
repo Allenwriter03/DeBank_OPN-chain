@@ -2,7 +2,7 @@
 
 # ⧗ DeBank
 
-### Time-locked savings vault on OPN Chain
+### A Decentralized savings vault on OPN Chain
 
 **Deposit. Lock. Withdraw on your terms.**
 
@@ -16,7 +16,7 @@
 
 ## What is DeBank?
 
-DeBank is a non-custodial, time-locked savings vault built on OPN Chain. Users deposit **IOPN** (and soon USDC, USDT, and other OPN Chain assets) into a smart contract, set their own unlock date, and walk away knowing their funds are safe until they're ready.
+DeBank is a non-custodial, Decentralized savings vault built on OPN Chain. Users deposit **IOPN** (and soon USDC, USDT, and other OPN Chain assets) into a smart contract, set their own unlock date, and walk away knowing their funds are safe until they're ready.
 
 The discipline is built in by design — your assets stay locked until maturity. An emergency exit is always available for a small fee, so you're never permanently blocked from your own money.
 
