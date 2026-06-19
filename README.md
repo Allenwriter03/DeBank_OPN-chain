@@ -20,8 +20,6 @@ DeBank is a non-custodial, Decentralized savings vault built on OPN Chain. Users
 
 The discipline is built in by design — your assets stay locked until maturity. An emergency exit is always available for a small fee, so you're never permanently blocked from your own money.
 
-> _"I locked 500 IOPN before a bull run and couldn't touch it even when panic hit. Best financial decision I've made on any chain."_ — Paul Atkins, Crypto Trader
-
 ---
 
 ##  Key Links
