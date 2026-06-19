@@ -14,7 +14,7 @@
 
 ---
 
-## 🏦 What is DeBank?
+## What is DeBank?
 
 DeBank is a non-custodial, time-locked savings vault built on OPN Chain. Users deposit **IOPN** (and soon USDC, USDT, and other OPN Chain assets) into a smart contract, set their own unlock date, and walk away knowing their funds are safe until they're ready.
 
@@ -24,40 +24,40 @@ The discipline is built in by design — your assets stay locked until maturity.
 
 ---
 
-## 🔗 Key Links
+##  Key Links
 
 | | |
 |---|---|
-| 🌐 **Live App** | https://iopn-debank.netlify.app/ |
-| 📄 **Contract Address** | `0x67Fecd16CdEA7da4005a6eb21dbC00Fc5De11041` |
-| 🔍 **Explorer** | [View on OPN Testnet Explorer](https://testnet.iopn.tech/address/0x67Fecd16CdEA7da4005a6eb21dbC00Fc5De11041) |
-| ⛓️ **Network** | OPN Chain Testnet · Chain ID `984` |
-| 🏗️ **Builder Programme** | [builders.iopn.tech](https://builders.iopn.tech) |
+|  **Live App** | https://iopn-debank.netlify.app/ |
+|  **Contract Address** | `0x67Fecd16CdEA7da4005a6eb21dbC00Fc5De11041` |
+|  **Explorer** | [View on OPN Testnet Explorer](https://testnet.iopn.tech/address/0x67Fecd16CdEA7da4005a6eb21dbC00Fc5De11041) |
+|  **Network** | OPN Chain Testnet · Chain ID `984` |
+|  **Builder Programme** | [builders.iopn.tech](https://builders.iopn.tech) |
 
 ---
 
-## ✨ Features
+##  Features
 
-- 🔒 **Time-lock discipline** — Choose your unlock date from 1 day to 5 years
-- ➕ **Top-up anytime** — Add more IOPN to an existing lock before it matures
-- 💸 **Emergency exit** — Early withdrawal is always available for a transparent fee — you're never fully locked out
-- 🧾 **Full history** — On-chain transaction history with deposit and withdrawal tracking
-- 📈 **Savings chart** — Live line chart built from your real on-chain event data
-- 🎨 **Multi-wallet support** — MetaMask, OKX Wallet, Coinbase Wallet, Rabby
-- 🏛️ **Non-custodial** — Only your wallet key can ever withdraw your funds
-- ⏸️ **Pause safety** — Contract can be paused to halt new deposits, but withdrawals always remain open
-- 📦 **Arkive** _(coming soon)_ — Store physical assets on-chain
+-  **Time-lock discipline** — Choose your unlock date from 1 day to 5 years
+-  **Top-up anytime** — Add more IOPN to an existing lock before it matures
+-  **Emergency exit** — Early withdrawal is always available for a transparent fee — you're never fully locked out
+-  **Full history** — On-chain transaction history with deposit and withdrawal tracking
+-  **Savings chart** — Live line chart built from your real on-chain event data
+-  **Multi-wallet support** — MetaMask, OKX Wallet, Coinbase Wallet, Rabby
+-  **Non-custodial** — Only your wallet key can ever withdraw your funds
+-  **Pause safety** — Contract can be paused to halt new deposits, but withdrawals always remain open
+-  **Arkive** _(coming soon)_ — Store physical assets on-chain
 
 ---
 
-## 💰 Supported Assets
+##  Supported Assets
 
 | Token | Status |
 |---|---|
-| **IOPN** (Native) | ✅ Live |
-| **USDC** | 🔜 Coming soon |
-| **USDT** | 🔜 Coming soon |
-| Other OPN ERC-20s | 🔜 Expanding |
+| **IOPN** (Native) |  Live |
+| **USDC** |  Coming soon |
+| **USDT** |  Coming soon |
+| Other OPN ERC-20s |  Expanding |
 
 ---
 
@@ -81,7 +81,7 @@ The frontend is two plain HTML files — no build step, no framework, no complex
 
 ---
 
-## 🏗️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -100,11 +100,11 @@ The frontend is two plain HTML files — no build step, no framework, no complex
 
 ```
 debank/
-├── 📄 README.md
-├── ⚙️  hardhat.config.js
-├── 📦 package.json
-├── 🔒 .env.example
-├── 🚫 .gitignore
+├──  README.md
+├──   hardhat.config.js
+├──  package.json
+├──  .env.example
+├──  .gitignore
 │
 ├── 📂 contracts/
 │   ├── TimeLockVault.sol        ← Main vault contract
@@ -124,7 +124,7 @@ debank/
 
 ---
 
-## 🧪 Smart Contract
+##  Smart Contract
 
 **Contract:** `DeBank.sol`
 
