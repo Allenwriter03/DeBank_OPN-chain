@@ -976,8 +976,7 @@ async function connectWithProvider(rawProvider) {
     el("histArea").innerHTML = "<div class=\"empty-state\">Loading transactions…</div>";
     await loadFeesAndBounds();
     await refreshLocks();
-    await buildSavingsChart();
-    await loadHistory();
+    await refreshActivity();
     rawProvider.on?.("chainChanged", () => location.reload());
     rawProvider.on?.("accountsChanged", () => location.reload());
   } catch (err) {
@@ -1079,48 +1078,80 @@ function updateDashboardStats(locks) {
   }
 }
 
-async function buildSavingsChart() {
-  try {
-    const createdFilter = contract.filters.LockCreated(null, account);
-    const claimedFilter = contract.filters.LockClaimed(null, account);
-    const [createdEvents, claimedEvents] = await Promise.all([
-      contract.queryFilter(createdFilter),
-      contract.queryFilter(claimedFilter)
-    ]);
+async function fetchEventsChunked(filter, latestBlock) {
+  const events = [];
+  let chunkSize = 50000;
+  let from = 0;
 
-    if (!createdEvents.length) {
-      el("chartNote").textContent = "No deposit events found yet";
-      buildProjectionFallback();
+  while (from <= latestBlock) {
+    const to = Math.min(from + chunkSize - 1, latestBlock);
+    try {
+      const batch = await contract.queryFilter(filter, from, to);
+      events.push(...batch);
+      from = to + 1;
+    } catch (err) {
+      if (chunkSize <= 200) {
+        from = to + 1;
+        continue;
+      }
+      chunkSize = Math.floor(chunkSize / 4) || 200;
+    }
+  }
+
+  return events;
+}
+
+async function loadAllEvents() {
+  const latestBlock = await provider.getBlockNumber();
+  const createdFilter = contract.filters.LockCreated(null, account);
+  const claimedFilter = contract.filters.LockClaimed(null, account);
+  const [created, claimed] = await Promise.all([
+    fetchEventsChunked(createdFilter, latestBlock),
+    fetchEventsChunked(claimedFilter, latestBlock)
+  ]);
+  return { created, claimed };
+}
+
+async function resolveBlockTimestamps(created, claimed) {
+  const uniqueBlocks = [...new Set([
+    ...created.map(e => e.blockNumber),
+    ...claimed.map(e => e.blockNumber)
+  ])];
+  const results = await Promise.allSettled(uniqueBlocks.map(n => provider.getBlock(n, false)));
+  const blockMap = {};
+  uniqueBlocks.forEach((n, i) => {
+    if (results[i].status === "fulfilled" && results[i].value) {
+      blockMap[n] = results[i].value.timestamp;
+    }
+  });
+  return blockMap;
+}
+
+async function buildSavingsChart(events) {
+  try {
+    const { created, claimed } = events;
+
+    if (!created.length) {
+      el("chartNote").textContent = "No deposits found for this wallet yet";
+      renderChart(["Today"], [0]);
       return;
     }
 
-    const uniqueBlocks = [...new Set([
-      ...createdEvents.map(e => e.blockNumber),
-      ...claimedEvents.map(e => e.blockNumber)
-    ])];
-
-    const blockResults = await Promise.allSettled(uniqueBlocks.map(n => provider.getBlock(n, false)));
-    const blockMap = {};
-    uniqueBlocks.forEach((n, i) => {
-      if (blockResults[i].status === "fulfilled" && blockResults[i].value) {
-        blockMap[n] = blockResults[i].value.timestamp;
-      }
-    });
+    const blockMap = await resolveBlockTimestamps(created, claimed);
 
     const points = [];
-    createdEvents.forEach(e => {
-      if (blockMap[e.blockNumber]) {
-        points.push({ ts: blockMap[e.blockNumber], delta: Number(ethers.formatEther(e.args.amount)) });
-      }
+    created.forEach(e => {
+      const ts = blockMap[e.blockNumber];
+      if (ts) points.push({ ts, delta: Number(ethers.formatEther(e.args.amount)) });
     });
-    claimedEvents.forEach(e => {
-      if (blockMap[e.blockNumber]) {
-        points.push({ ts: blockMap[e.blockNumber], delta: -Number(ethers.formatEther(e.args.payout)) });
-      }
+    claimed.forEach(e => {
+      const ts = blockMap[e.blockNumber];
+      if (ts) points.push({ ts, delta: -Number(ethers.formatEther(e.args.payout)) });
     });
 
     if (!points.length) {
-      buildProjectionFallback();
+      el("chartNote").textContent = "No deposits found for this wallet yet";
+      renderChart(["Today"], [0]);
       return;
     }
 
@@ -1139,60 +1170,23 @@ async function buildSavingsChart() {
     labels.push(new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" }));
     values.push(parseFloat(cumulative.toFixed(4)));
 
-    const depCount = createdEvents.length;
-    const wdCount = claimedEvents.length;
-    el("chartNote").textContent = `${depCount} deposit${depCount !== 1 ? "s" : ""} · ${wdCount} withdrawal${wdCount !== 1 ? "s" : ""}`;
+    el("chartNote").textContent = `${created.length} deposit${created.length !== 1 ? "s" : ""} · ${claimed.length} withdrawal${claimed.length !== 1 ? "s" : ""}`;
     renderChart(labels, values);
   } catch (err) {
-    buildProjectionFallback();
+    el("chartNote").textContent = "Could not load savings history";
+    renderChart(["Today"], [0]);
   }
 }
 
-function buildProjectionFallback() {
-  const ids = contract ? null : null;
-  el("locksArea");
-  const cards = document.querySelectorAll(".lock-card");
-  if (!cards.length) {
-    renderChart(["Today"], [0]);
-    el("chartNote").textContent = "No deposits yet";
-    return;
-  }
-  const area = el("locksArea");
-  const gridCards = area.querySelectorAll(".lock-card");
-  if (!gridCards.length) {
-    renderChart(["Today"], [0]);
-    return;
-  }
-  renderChart(["Today"], [0]);
-  el("chartNote").textContent = "Savings projection from your deposits";
-}
-
-async function loadHistory() {
+async function loadHistory(events) {
   el("histArea").innerHTML = "<div class=\"empty-state\">Loading transactions…</div>";
   try {
-    const createdFilter = contract.filters.LockCreated(null, account);
-    const claimedFilter = contract.filters.LockClaimed(null, account);
-    const [createdEvents, claimedEvents] = await Promise.all([
-      contract.queryFilter(createdFilter),
-      contract.queryFilter(claimedFilter)
-    ]);
+    const { created, claimed } = events;
+    const blockMap = await resolveBlockTimestamps(created, claimed);
 
     const items = [];
 
-    const uniqueBlocks = [...new Set([
-      ...createdEvents.map(e => e.blockNumber),
-      ...claimedEvents.map(e => e.blockNumber)
-    ])];
-
-    const blockResults = await Promise.allSettled(uniqueBlocks.map(n => provider.getBlock(n, false)));
-    const blockMap = {};
-    uniqueBlocks.forEach((n, i) => {
-      if (blockResults[i].status === "fulfilled" && blockResults[i].value) {
-        blockMap[n] = blockResults[i].value.timestamp;
-      }
-    });
-
-    createdEvents.forEach(e => {
+    created.forEach(e => {
       items.push({
         ts: blockMap[e.blockNumber] || 0,
         type: "dep",
@@ -1201,7 +1195,7 @@ async function loadHistory() {
       });
     });
 
-    claimedEvents.forEach(e => {
+    claimed.forEach(e => {
       items.push({
         ts: blockMap[e.blockNumber] || 0,
         type: "wd",
@@ -1248,6 +1242,12 @@ async function loadHistory() {
   } catch (err) {
     el("histArea").innerHTML = "<div class=\"empty-state\">Could not load transactions. Check your connection and try again.</div>";
   }
+}
+
+async function refreshActivity() {
+  const events = await loadAllEvents();
+  await buildSavingsChart(events);
+  await loadHistory(events);
 }
 
 function renderChart(labels, values) {
@@ -1356,8 +1356,7 @@ async function handleClaim(lockId, isEarly, btn) {
     await tx.wait();
     showToast("Withdrawn. Funds sent to your wallet.");
     await refreshLocks();
-    await buildSavingsChart();
-    await loadHistory();
+    await refreshActivity();
   } catch (err) {
     showToast(describeError(err), true);
     btn.disabled = false;
@@ -1377,7 +1376,7 @@ async function handleTopUp(lockId, input, btn) {
     await tx.wait();
     showToast("Added to your deposit.");
     await refreshLocks();
-    await buildSavingsChart();
+    await refreshActivity();
   } catch (err) {
     showToast(describeError(err), true);
   } finally {
@@ -1441,8 +1440,7 @@ el("lockForm").addEventListener("submit", async e => {
     el("amountInput").value = "";
     updatePreview();
     await refreshLocks();
-    await buildSavingsChart();
-    await loadHistory();
+    await refreshActivity();
   } catch (err) {
     showToast(describeError(err), true);
   } finally {

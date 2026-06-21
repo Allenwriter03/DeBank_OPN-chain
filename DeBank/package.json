@@ -1,0 +1,19 @@
+{
+  "name": "timelock-vault",
+  "version": "1.0.0",
+  "description": "Time-locked savings vault for native OPN and approved ERC-20 tokens (e.g. USDC) on OPN Chain",
+  "license": "MIT",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:opnTestnet": "hardhat run scripts/deploy.js --network opnTestnet"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0"
+  }
+}
