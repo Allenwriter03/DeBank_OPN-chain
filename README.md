@@ -20,6 +20,7 @@ DeBank is a non-custodial, Decentralized savings vault built on OPN Chain. Users
 
 The discipline is built in by design — your assets stay locked until maturity. An emergency exit is always available for a small fee, so you're never permanently blocked from your own money.
 
+
 ---
 
 ##  Key Links
@@ -69,6 +70,9 @@ The frontend is two plain HTML files — no build step, no framework, no complex
 - Step-by-step how-it-works
 - User testimonials
 
+  <img width="937" height="647" alt="image" src="https://github.com/user-attachments/assets/d076f786-a0b8-4091-9098-415242f3e54b" />
+
+
 ### App (`app.html`)
 - Collapsible sidebar navigation
 - **Dashboard** — 4 live stat cards + real savings line chart (Chart.js, built from on-chain events)
@@ -76,6 +80,13 @@ The frontend is two plain HTML files — no build step, no framework, no complex
 - **Arkive** — Coming soon page
 - **History** — Full deposit and withdrawal event log with timestamps
 - **Settings** — Network status and contract info
+
+<img width="1483" height="730" alt="image" src="https://github.com/user-attachments/assets/dd6d6758-d954-4cfd-84ed-d815922a0c50" />
+
+<img width="1460" height="756" alt="image" src="https://github.com/user-attachments/assets/25355d47-0349-471c-8b21-5aa026cac410" />
+
+<img width="1557" height="764" alt="Screenshot 2026-06-21 215024" src="https://github.com/user-attachments/assets/d5708395-3634-4478-970c-c9bef45b8770" />
+
 
 ---
 
